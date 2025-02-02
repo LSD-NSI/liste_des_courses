@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liste de Courses</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: white;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: auto;
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 2px;
+            box-shadow: 0 0 10px rgba(0, 0, 255, 0.5);
+        }
+
+        input,
+        button {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: none;
+            border-radius: 5px;
+        }
+
+        input {
+            background: #333;
+            color: white;
+        }
+
+        .add-button {
+            background: rgb(9, 0, 128);
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .not-found-button {
+            background: darkorange;
+            color: white;
+            cursor: pointer;
+            border-radius: 10%;
+            width: 30px;
+            height: 30px;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        ul {
+            padding: 0;
+            margin: 0;
+            list-style: none;
+        }
+
+        .item {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+
+        .item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #333;
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 5px;
+            transition: 0.3s;
+        }
+
+        .bought {
+            text-decoration: line-through;
+            color: grey;
+        }
+
+        .not-found {
+            background: darkred;
+            color: white;
+        }
+
+        .small-checkbox {
+            width: 20px;
+            height: 20px;
+        }
+
+        .delete-all {
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            padding: 10px;
+            background: red;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Liste de Courses</h2>
+        <input type="text" id="item" placeholder="Nom de l'article">
+        <input type="text" id="note" placeholder="Remarque (optionnel)">
+        <button class="add-button" onclick="addItem()">Ajouter</button>
+        <ul id="list"></ul>
+    </div>
+    <button class="delete-all" onclick="clearList()">Supprimer la liste</button>
+    <script>
+        document.addEventListener("DOMContentLoaded", loadList);
+
+        function addItem() {
+            let itemName = document.getElementById("item").value;
+            let note = document.getElementById("note").value;
+            if (!itemName) return;
+
+            let listItem = { name: itemName, note: note, bought: false, notFound: false };
+            let items = JSON.parse(localStorage.getItem("shoppingList")) || [];
+            items.push(listItem);
+            localStorage.setItem("shoppingList", JSON.stringify(items));
+
+            document.getElementById("item").value = "";
+            document.getElementById("note").value = "";
+            loadList();
+        }
+
+        function loadList() {
+            let list = document.getElementById("list");
+            list.innerHTML = "";
+            let items = JSON.parse(localStorage.getItem("shoppingList")) || [];
+            items.forEach((item, index) => {
+                let li = document.createElement("li");
+                li.className = "item";
+                if (item.bought) li.classList.add("bought");
+                if (item.notFound) li.classList.add("not-found");
+
+                li.innerHTML = `
+                    <input type="checkbox" class="small-checkbox" onclick="toggleBought(${index})" ${item.bought ? "checked" : ""}>
+                    <span onclick="toggleBought(${index})">${item.name} ${item.note ? " - " + item.note : ""}</span>
+                    <button class="not-found-button" onclick="toggleNotFound(${index})">🚫</button>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        function toggleBought(index) {
+            let items = JSON.parse(localStorage.getItem("shoppingList"));
+            items[index].bought = !items[index].bought;
+            localStorage.setItem("shoppingList", JSON.stringify(items));
+            loadList();
+        }
+
+        function toggleNotFound(index) {
+            let items = JSON.parse(localStorage.getItem("shoppingList"));
+            items[index].notFound = !items[index].notFound;
+            localStorage.setItem("shoppingList", JSON.stringify(items));
+            loadList();
+        }
+
+        function clearList() {
+            localStorage.removeItem("shoppingList");
+            loadList();
+        }
+    </script>
+</body>
+
+</html>
