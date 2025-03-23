@@ -52,16 +52,15 @@
             color: white;
             cursor: pointer;
             border-radius: 10%;
-            width: 30px;
-            height: 30px;
-            font-size: 16px;
+            width: 25px;
+            height: 25px;
+            font-size: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            position: absolute;
             right: 10px;
             top: 50%;
-            transform: translateY(-50%);
+            margin-right: 5px;
         }
 
         ul {
@@ -75,8 +74,8 @@
             align-items: center;
             justify-content: space-between;
             background: #333;
-            padding: 10px;
-            margin-top: 5px;
+            padding: 3px;
+            margin-top: 3px;
             border-radius: 5px;
             position: relative;
         }
@@ -99,20 +98,19 @@
 
         .move-buttons {
             display: flex;
-            flex-direction: column;
-            gap: 3px;
+            flex-direction: row;
             align-items: center;
             margin-right: 10px;
         }
 
         .move-buttons button {
-            width: 30px;
-            height: 30px;
-            font-size: 16px;
+            width: 25px;
+            height: 25px;
+            margin-left: 5px;
+            font-size: 14px;
             cursor: pointer;
             background: #0e11c5;
             color: white;
-            border: none;
             border-radius: 10%;
             display: flex;
             align-items: center;
@@ -206,6 +204,22 @@
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 255, 0.5);
         }
+
+        .delete-item {
+            background: red;
+            color: white;
+            border: none;
+            border-radius: 10%;
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            top: 5%;
+            right: 10px;
+            display: flex;
+            text-align: center;
+            align-items: center;
+            justify-content: center;
+        }
     </style>
 </head>
 
@@ -234,144 +248,166 @@
     <button class="delete-all" onclick="clearList()">Supprimer la liste</button>
 
     <script>
-        document.addEventListener("DOMContentLoaded", loadList);
+       document.addEventListener("DOMContentLoaded", loadList);
 
-        function toggleOptionsMenu() {
-            const menu = document.getElementById('optionsMenu');
-            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+function toggleOptionsMenu() {
+    const menu = document.getElementById('optionsMenu');
+    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+}
+
+function addItem() {
+    let itemName = document.getElementById("item").value;
+    let note = document.getElementById("note").value;
+    if (!itemName) return;
+
+    let listItem = { name: itemName, note: note, bought: false, notFound: false };
+    let items = JSON.parse(localStorage.getItem("shoppingList")) || [];
+    items.push(listItem);
+    localStorage.setItem("shoppingList", JSON.stringify(items));
+
+    document.getElementById("item").value = "";
+    document.getElementById("note").value = "";
+    loadList();
+}
+
+function loadList() {
+    let list = document.getElementById("list");
+    list.innerHTML = "";
+    let items = JSON.parse(localStorage.getItem("shoppingList")) || [];
+    items.forEach((item, index) => {
+        let li = document.createElement("li");
+        li.className = "item";
+        if (item.bought) li.classList.add("bought");
+        if (item.notFound) li.classList.add("not-found");
+
+        li.innerHTML = `
+            <div class="move-buttons">
+                <button onclick="moveUp(${index})">⬆️</button>
+                <button onclick="moveDown(${index})">⬇️</button>
+            </div>
+            <input type="checkbox" class="small-checkbox" onclick="toggleBought(${index})" ${item.bought ? "checked" : ""}>
+            <div class="item-content">
+                <span onclick="toggleBought(${index})">${item.name} ${item.note ? " - " + item.note : ""}</span>
+            </div>
+            <button class="not-found-button" onclick="toggleNotFound(${index})">🚫</button>
+            <button class="delete-item" onclick="deleteItem(${index})">❌</button>
+        `;
+        list.appendChild(li);
+    });
+}
+
+function toggleBought(index) {
+    let items = JSON.parse(localStorage.getItem("shoppingList"));
+    items[index].bought = !items[index].bought;
+    localStorage.setItem("shoppingList", JSON.stringify(items));
+    loadList();
+}
+
+function toggleNotFound(index) {
+    let items = JSON.parse(localStorage.getItem("shoppingList"));
+    items[index].notFound = !items[index].notFound;
+    localStorage.setItem("shoppingList", JSON.stringify(items));
+    loadList();
+}
+
+function moveUp(index) {
+    let items = JSON.parse(localStorage.getItem("shoppingList"));
+    if (index > 0) {
+        [items[index], items[index - 1]] = [items[index - 1], items[index]];
+        localStorage.setItem("shoppingList", JSON.stringify(items));
+        loadList();
+    }
+}
+
+function moveDown(index) {
+    let items = JSON.parse(localStorage.getItem("shoppingList"));
+    if (index < items.length - 1) {
+        [items[index], items[index + 1]] = [items[index + 1], items[index]];
+        localStorage.setItem("shoppingList", JSON.stringify(items));
+        loadList();
+    }
+}
+
+function deleteItem(index) {
+    if (confirm("Êtes-vous sûr de vouloir supprimer cet élément ?")) {
+        let items = JSON.parse(localStorage.getItem("shoppingList"));
+        items.splice(index, 1);
+        localStorage.setItem("shoppingList", JSON.stringify(items));
+        loadList();
+    }
+}
+
+function clearList() {
+    let items = JSON.parse(localStorage.getItem("shoppingList")) || [];
+    
+    const notFoundItems = items.filter(item => item.notFound);
+
+    if (notFoundItems.length > 0) {
+        let confirmDelete = confirm("Il y a des éléments marqués comme non trouvés. Voulez-vous vraiment supprimer la liste ?");
+        if (!confirmDelete) {
+            return;
         }
+    }
 
-        function addItem() {
-            let itemName = document.getElementById("item").value;
-            let note = document.getElementById("note").value;
-            if (!itemName) return;
+    localStorage.removeItem("shoppingList");
+    loadList();
+}
 
-            let listItem = { name: itemName, note: note, bought: false, notFound: false };
-            let items = JSON.parse(localStorage.getItem("shoppingList")) || [];
-            items.push(listItem);
-            localStorage.setItem("shoppingList", JSON.stringify(items));
 
-            document.getElementById("item").value = "";
-            document.getElementById("note").value = "";
-            loadList();
-        }
+function downloadList() {
+    let items = JSON.parse(localStorage.getItem("shoppingList")) || [];
+    let text = items.map(item => `${item.name} ${item.note ? "- " + item.note : ""}`).join("\n");
+    let blob = new Blob([text], { type: 'text/plain' });
+    let url = URL.createObjectURL(blob);
+    let a = document.createElement("a");
+    a.href = url;
+    a.download = "shopping-list.txt";
+    a.click();
+    URL.revokeObjectURL(url);
+}
 
-        function loadList() {
-            let list = document.getElementById("list");
-            list.innerHTML = "";
-            let items = JSON.parse(localStorage.getItem("shoppingList")) || [];
-            items.forEach((item, index) => {
-                let li = document.createElement("li");
-                li.className = "item";
-                if (item.bought) li.classList.add("bought");
-                if (item.notFound) li.classList.add("not-found");
+function printList() {
+    let items = JSON.parse(localStorage.getItem("shoppingList")) || [];
+    let printWindow = window.open('', '', 'width=800,height=600');
 
-                li.innerHTML = `
-                    <div class="move-buttons">
-                        <button onclick="moveUp(${index})">⬆️</button>
-                        <button onclick="moveDown(${index})">⬇️</button>
-                    </div>
-                    <input type="checkbox" class="small-checkbox" onclick="toggleBought(${index})" ${item.bought ? "checked" : ""}>
-                    <div class="item-content">
-                        <span onclick="toggleBought(${index})">${item.name} ${item.note ? " - " + item.note : ""}</span>
-                    </div>
-                    <button class="not-found-button" onclick="toggleNotFound(${index})">🚫</button>
-                `;
-                list.appendChild(li);
-            });
-        }
+    printWindow.document.write('<html><head><title>Liste de Courses</title>');
+    printWindow.document.write('<style>');
+    printWindow.document.write('body { font-family: Arial, sans-serif; font-size: 18px; color: #333; line-height: 1.6; padding: 20px; margin: 0; }');
+    printWindow.document.write('ul { padding-left: 20px; }');
+    printWindow.document.write('li { margin-bottom: 10px; }');
+    printWindow.document.write('h1 { font-size: 24px; text-align: center; margin-bottom: 30px; }');
+    printWindow.document.write('</style>');
+    printWindow.document.write('</head><body>');
 
-        function toggleBought(index) {
-            let items = JSON.parse(localStorage.getItem("shoppingList"));
-            items[index].bought = !items[index].bought;
-            localStorage.setItem("shoppingList", JSON.stringify(items));
-            loadList();
-        }
+    printWindow.document.write('<h1>Liste de Courses</h1>');
 
-        function toggleNotFound(index) {
-            let items = JSON.parse(localStorage.getItem("shoppingList"));
-            items[index].notFound = !items[index].notFound;
-            localStorage.setItem("shoppingList", JSON.stringify(items));
-            loadList();
-        }
+    printWindow.document.write('<ul>');
+    items.forEach(item => {
+        printWindow.document.write(`<li><strong>${item.name}</strong> ${item.note ? "- " + item.note : ""}</li>`);
+    });
+    printWindow.document.write('</ul>');
 
-        function moveUp(index) {
-            let items = JSON.parse(localStorage.getItem("shoppingList"));
-            if (index > 0) {
-                [items[index], items[index - 1]] = [items[index - 1], items[index]];
-                localStorage.setItem("shoppingList", JSON.stringify(items));
-                loadList();
-            }
-        }
+    printWindow.document.write('</body></html>');
+    printWindow.document.close();
+    printWindow.print();
+}
 
-        function moveDown(index) {
-            let items = JSON.parse(localStorage.getItem("shoppingList"));
-            if (index < items.length - 1) {
-                [items[index], items[index + 1]] = [items[index + 1], items[index]];
-                localStorage.setItem("shoppingList", JSON.stringify(items));
-                loadList();
-            }
-        }
+function loadFile(event) {
+    let file = event.target.files[0];
+    let reader = new FileReader();
+    reader.onload = function (e) {
+        let text = e.target.result;
+        let items = text.split('\n').map(line => {
+            let parts = line.split(' - ');
+            return { name: parts[0], note: parts[1] || '', bought: false, notFound: false };
+        });
+        localStorage.setItem("shoppingList", JSON.stringify(items));
+        loadList();
+    };
+    reader.readAsText(file);
+}
 
-        function clearList() {
-            localStorage.removeItem("shoppingList");
-            loadList();
-        }
-
-        function downloadList() {
-            let items = JSON.parse(localStorage.getItem("shoppingList")) || [];
-            let text = items.map(item => `${item.name} ${item.note ? "- " + item.note : ""}`).join("\n");
-            let blob = new Blob([text], { type: 'text/plain' });
-            let url = URL.createObjectURL(blob);
-            let a = document.createElement("a");
-            a.href = url;
-            a.download = "shopping-list.txt";
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-
-        function printList() {
-            let items = JSON.parse(localStorage.getItem("shoppingList")) || [];
-            let printWindow = window.open('', '', 'width=800,height=600');
-
-            printWindow.document.write('<html><head><title>Liste de Courses</title>');
-            printWindow.document.write('<style>');
-            printWindow.document.write('body { font-family: Arial, sans-serif; font-size: 18px; color: #333; line-height: 1.6; padding: 20px; margin: 0; }');
-            printWindow.document.write('ul { padding-left: 20px; }');
-            printWindow.document.write('li { margin-bottom: 10px; }');
-            printWindow.document.write('h1 { font-size: 24px; text-align: center; margin-bottom: 30px; }');
-            printWindow.document.write('</style>');
-            printWindow.document.write('</head><body>');
-
-            printWindow.document.write('<h1>Liste de Courses</h1>');
-
-            printWindow.document.write('<ul>');
-            items.forEach(item => {
-                printWindow.document.write(`<li><strong>${item.name}</strong> ${item.note ? "- " + item.note : ""}</li>`);
-            });
-            printWindow.document.write('</ul>');
-
-            printWindow.document.write('</body></html>');
-            printWindow.document.close();
-            printWindow.print();
-        }
-
-        function loadFile(event) {
-            let file = event.target.files[0];
-            let reader = new FileReader();
-            reader.onload = function (e) {
-                let text = e.target.result;
-                let items = text.split('\n').map(line => {
-                    let parts = line.split(' - ');
-                    return { name: parts[0], note: parts[1] || '', bought: false, notFound: false };
-                });
-                localStorage.setItem("shoppingList", JSON.stringify(items));
-                loadList();
-            };
-            reader.readAsText(file);
-        }
-
-        function shareList() {
+function shareList() {
     let items = JSON.parse(localStorage.getItem("shoppingList")) || [];
     let text = items.map(item => `${item.name} ${item.note ? "- " + item.note : ""}`).join("\n");
 
@@ -396,8 +432,6 @@
         alert('Le partage n\'est pas supporté sur ce navigateur.');
     }
 }
-
-
     </script>
 </body>
 
