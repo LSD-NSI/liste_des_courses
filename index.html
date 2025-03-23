@@ -248,39 +248,39 @@
     <button class="delete-all" onclick="clearList()">Supprimer la liste</button>
 
     <script>
-       document.addEventListener("DOMContentLoaded", loadList);
+        document.addEventListener("DOMContentLoaded", loadList);
 
-function toggleOptionsMenu() {
-    const menu = document.getElementById('optionsMenu');
-    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
-}
+        function toggleOptionsMenu() {
+            const menu = document.getElementById('optionsMenu');
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
 
-function addItem() {
-    let itemName = document.getElementById("item").value;
-    let note = document.getElementById("note").value;
-    if (!itemName) return;
+        function addItem() {
+            let itemName = document.getElementById("item").value;
+            let note = document.getElementById("note").value;
+            if (!itemName) return;
 
-    let listItem = { name: itemName, note: note, bought: false, notFound: false };
-    let items = JSON.parse(localStorage.getItem("shoppingList")) || [];
-    items.push(listItem);
-    localStorage.setItem("shoppingList", JSON.stringify(items));
+            let listItem = { name: itemName, note: note, bought: false, notFound: false };
+            let items = JSON.parse(localStorage.getItem("shoppingList")) || [];
+            items.push(listItem);
+            localStorage.setItem("shoppingList", JSON.stringify(items));
 
-    document.getElementById("item").value = "";
-    document.getElementById("note").value = "";
-    loadList();
-}
+            document.getElementById("item").value = "";
+            document.getElementById("note").value = "";
+            loadList();
+        }
 
-function loadList() {
-    let list = document.getElementById("list");
-    list.innerHTML = "";
-    let items = JSON.parse(localStorage.getItem("shoppingList")) || [];
-    items.forEach((item, index) => {
-        let li = document.createElement("li");
-        li.className = "item";
-        if (item.bought) li.classList.add("bought");
-        if (item.notFound) li.classList.add("not-found");
+        function loadList() {
+            let list = document.getElementById("list");
+            list.innerHTML = "";
+            let items = JSON.parse(localStorage.getItem("shoppingList")) || [];
+            items.forEach((item, index) => {
+                let li = document.createElement("li");
+                li.className = "item";
+                if (item.bought) li.classList.add("bought");
+                if (item.notFound) li.classList.add("not-found");
 
-        li.innerHTML = `
+                li.innerHTML = `
             <div class="move-buttons">
                 <button onclick="moveUp(${index})">⬆️</button>
                 <button onclick="moveDown(${index})">⬇️</button>
@@ -292,146 +292,160 @@ function loadList() {
             <button class="not-found-button" onclick="toggleNotFound(${index})">🚫</button>
             <button class="delete-item" onclick="deleteItem(${index})">❌</button>
         `;
-        list.appendChild(li);
-    });
-}
-
-function toggleBought(index) {
-    let items = JSON.parse(localStorage.getItem("shoppingList"));
-    items[index].bought = !items[index].bought;
-    localStorage.setItem("shoppingList", JSON.stringify(items));
-    loadList();
-}
-
-function toggleNotFound(index) {
-    let items = JSON.parse(localStorage.getItem("shoppingList"));
-    items[index].notFound = !items[index].notFound;
-    localStorage.setItem("shoppingList", JSON.stringify(items));
-    loadList();
-}
-
-function moveUp(index) {
-    let items = JSON.parse(localStorage.getItem("shoppingList"));
-    if (index > 0) {
-        [items[index], items[index - 1]] = [items[index - 1], items[index]];
-        localStorage.setItem("shoppingList", JSON.stringify(items));
-        loadList();
-    }
-}
-
-function moveDown(index) {
-    let items = JSON.parse(localStorage.getItem("shoppingList"));
-    if (index < items.length - 1) {
-        [items[index], items[index + 1]] = [items[index + 1], items[index]];
-        localStorage.setItem("shoppingList", JSON.stringify(items));
-        loadList();
-    }
-}
-
-function deleteItem(index) {
-    if (confirm("Êtes-vous sûr de vouloir supprimer cet élément ?")) {
-        let items = JSON.parse(localStorage.getItem("shoppingList"));
-        items.splice(index, 1);
-        localStorage.setItem("shoppingList", JSON.stringify(items));
-        loadList();
-    }
-}
-
-function clearList() {
-    let items = JSON.parse(localStorage.getItem("shoppingList")) || [];
-    
-    const notFoundItems = items.filter(item => item.notFound);
-
-    if (notFoundItems.length > 0) {
-        let confirmDelete = confirm("Il y a des éléments marqués comme non trouvés. Voulez-vous vraiment supprimer la liste ?");
-        if (!confirmDelete) {
-            return;
+                list.appendChild(li);
+            });
         }
-    }
 
-    localStorage.removeItem("shoppingList");
-    loadList();
-}
+        function toggleBought(index) {
+            let items = JSON.parse(localStorage.getItem("shoppingList"));
+            items[index].bought = !items[index].bought;
+            localStorage.setItem("shoppingList", JSON.stringify(items));
+            loadList();
+        }
+
+        function toggleNotFound(index) {
+            let items = JSON.parse(localStorage.getItem("shoppingList"));
+            items[index].notFound = !items[index].notFound;
+            localStorage.setItem("shoppingList", JSON.stringify(items));
+            loadList();
+        }
+
+        function moveUp(index) {
+            let items = JSON.parse(localStorage.getItem("shoppingList"));
+            if (index > 0) {
+                [items[index], items[index - 1]] = [items[index - 1], items[index]];
+                localStorage.setItem("shoppingList", JSON.stringify(items));
+                loadList();
+            }
+        }
+
+        function moveDown(index) {
+            let items = JSON.parse(localStorage.getItem("shoppingList"));
+            if (index < items.length - 1) {
+                [items[index], items[index + 1]] = [items[index + 1], items[index]];
+                localStorage.setItem("shoppingList", JSON.stringify(items));
+                loadList();
+            }
+        }
+
+        function deleteItem(index) {
+            if (confirm("Êtes-vous sûr de vouloir supprimer cet élément ?")) {
+                let items = JSON.parse(localStorage.getItem("shoppingList"));
+                items.splice(index, 1);
+                localStorage.setItem("shoppingList", JSON.stringify(items));
+                loadList();
+            }
+        }
+
+        function clearList() {
+            let items = JSON.parse(localStorage.getItem("shoppingList")) || [];
+
+            const notFoundItems = items.filter(item => item.notFound);
+
+            if (notFoundItems.length > 0) {
+                let notFoundNames = notFoundItems.map(item => item.name).join(', ');
+                let message = "Les éléments suivants n'ont pas été trouvés : " + notFoundNames;
+
+                let confirmation = confirm(message + "\nVoulez-vous vraiment supprimer tous les autres éléments ?");
+
+                if (confirmation) {
+                    let remainingItems = items.filter(item => item.notFound);
+                    localStorage.setItem("shoppingList", JSON.stringify(remainingItems));
+
+                    loadList();
+                }
+            } else {
+                let confirmation = confirm("Êtes-vous sûr de vouloir supprimer toute la liste ?");
+                if (confirmation) {
+                    localStorage.removeItem("shoppingList");
+                    loadList();
+                }
+            }
+        }
 
 
-function downloadList() {
-    let items = JSON.parse(localStorage.getItem("shoppingList")) || [];
-    let text = items.map(item => `${item.name} ${item.note ? "- " + item.note : ""}`).join("\n");
-    let blob = new Blob([text], { type: 'text/plain' });
-    let url = URL.createObjectURL(blob);
-    let a = document.createElement("a");
-    a.href = url;
-    a.download = "shopping-list.txt";
-    a.click();
-    URL.revokeObjectURL(url);
-}
+        function downloadList() {
+            let items = JSON.parse(localStorage.getItem("shoppingList")) || [];
+            let text = items.map(item => `${item.name} ${item.note ? "- " + item.note : ""}`).join("\n");
+            let blob = new Blob([text], { type: 'text/plain' });
+            let url = URL.createObjectURL(blob);
+            let a = document.createElement("a");
+            a.href = url;
+            a.download = "shopping-list.txt";
+            a.click();
+            URL.revokeObjectURL(url);
+        }
 
-function printList() {
-    let items = JSON.parse(localStorage.getItem("shoppingList")) || [];
-    let printWindow = window.open('', '', 'width=800,height=600');
+        function printList() {
+            let items = JSON.parse(localStorage.getItem("shoppingList")) || [];
+            let printWindow = window.open('', '', 'width=800,height=600');
 
-    printWindow.document.write('<html><head><title>Liste de Courses</title>');
-    printWindow.document.write('<style>');
-    printWindow.document.write('body { font-family: Arial, sans-serif; font-size: 18px; color: #333; line-height: 1.6; padding: 20px; margin: 0; }');
-    printWindow.document.write('ul { padding-left: 20px; }');
-    printWindow.document.write('li { margin-bottom: 10px; }');
-    printWindow.document.write('h1 { font-size: 24px; text-align: center; margin-bottom: 30px; }');
-    printWindow.document.write('</style>');
-    printWindow.document.write('</head><body>');
+            printWindow.document.write('<html><head><title>Liste de Courses</title>');
+            printWindow.document.write('<style>');
+            printWindow.document.write('body { font-family: Arial, sans-serif; font-size: 18px; color: #333; line-height: 1.6; padding: 20px; margin: 0; }');
+            printWindow.document.write('ul { padding-left: 20px; }');
+            printWindow.document.write('li { margin-bottom: 10px; }');
+            printWindow.document.write('h1 { font-size: 24px; text-align: center; margin-bottom: 30px; }');
+            printWindow.document.write('</style>');
+            printWindow.document.write('</head><body>');
 
-    printWindow.document.write('<h1>Liste de Courses</h1>');
+            printWindow.document.write('<h1>Liste de Courses</h1>');
 
-    printWindow.document.write('<ul>');
-    items.forEach(item => {
-        printWindow.document.write(`<li><strong>${item.name}</strong> ${item.note ? "- " + item.note : ""}</li>`);
-    });
-    printWindow.document.write('</ul>');
+            printWindow.document.write('<ul>');
+            items.forEach(item => {
+                printWindow.document.write(`<li><strong>${item.name}</strong> ${item.note ? "- " + item.note : ""}</li>`);
+            });
+            printWindow.document.write('</ul>');
 
-    printWindow.document.write('</body></html>');
-    printWindow.document.close();
-    printWindow.print();
-}
+            printWindow.document.write('</body></html>');
+            printWindow.document.close();
+            printWindow.print();
+        }
 
-function loadFile(event) {
-    let file = event.target.files[0];
-    let reader = new FileReader();
-    reader.onload = function (e) {
-        let text = e.target.result;
-        let items = text.split('\n').map(line => {
-            let parts = line.split(' - ');
-            return { name: parts[0], note: parts[1] || '', bought: false, notFound: false };
-        });
-        localStorage.setItem("shoppingList", JSON.stringify(items));
-        loadList();
-    };
-    reader.readAsText(file);
-}
+        function loadFile(event) {
+            let file = event.target.files[0];
+            let reader = new FileReader();
+            reader.onload = function (e) {
+                let text = e.target.result;
+                let items = text.split('\n').map(line => {
+                    let parts = line.split(' - ');
+                    return { name: parts[0], note: parts[1] || '', bought: false, notFound: false };
+                });
 
-function shareList() {
-    let items = JSON.parse(localStorage.getItem("shoppingList")) || [];
-    let text = items.map(item => `${item.name} ${item.note ? "- " + item.note : ""}`).join("\n");
+                let existingItems = JSON.parse(localStorage.getItem("shoppingList")) || [];
+                let updatedItems = [...existingItems, ...items];
 
-    let blob = new Blob([text], { type: 'text/plain' });
-    let url = URL.createObjectURL(blob);
+                localStorage.setItem("shoppingList", JSON.stringify(updatedItems));
+                loadList();
+            };
+            reader.readAsText(file);
+        }
 
-    const siteLink = "https://lsd-nsi.github.io/liste_des_courses/";
+        function shareList() {
+            let items = JSON.parse(localStorage.getItem("shoppingList")) || [];
+            let text = items.map(item => `${item.name} ${item.note ? "- " + item.note : ""}`).join("\n");
 
-    if (navigator.share) {
-        navigator.share({
-            title: 'Liste de Courses',
-            text: `Voici ma liste de courses :\n\n${text}\n\nVous pouvez visiter mon site ici : ${siteLink}`,
-            files: [
-                new File([blob], "shopping-list.txt", { type: "text/plain" })
-            ]
-        }).then(() => {
-            console.log('Liste partagée avec succès');
-        }).catch((error) => {
-            console.error('Erreur de partage', error);
-        });
-    } else {
-        alert('Le partage n\'est pas supporté sur ce navigateur.');
-    }
-}
+            let blob = new Blob([text], { type: 'text/plain' });
+            let url = URL.createObjectURL(blob);
+
+            const siteLink = "https://lsd-nsi.github.io/liste_des_courses/";
+
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Liste de Courses',
+                    text: `Voici ma liste de courses :\n\n${text}\n\nVous pouvez visiter mon site ici : ${siteLink}`,
+                    files: [
+                        new File([blob], "shopping-list.txt", { type: "text/plain" })
+                    ]
+                }).then(() => {
+                    console.log('Liste partagée avec succès');
+                }).catch((error) => {
+                    console.error('Erreur de partage', error);
+                });
+            } else {
+                alert('Le partage n\'est pas supporté sur ce navigateur.');
+            }
+        }
     </script>
 </body>
 
