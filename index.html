@@ -383,11 +383,10 @@
     if (navigator.share) {
         navigator.share({
             title: 'Liste de Courses',
-            text: `Voici ma liste de courses. Vous pouvez la consulter et visiter mon site ici : ${siteLink}`,
+            text: `Voici ma liste de courses :\n\n${text}\n\nVous pouvez visiter mon site ici : ${siteLink}`,
             files: [
                 new File([blob], "shopping-list.txt", { type: "text/plain" })
-            ],
-            url: siteLink
+            ]
         }).then(() => {
             console.log('Liste partagée avec succès');
         }).catch((error) => {
@@ -397,6 +396,7 @@
         alert('Le partage n\'est pas supporté sur ce navigateur.');
     }
 }
+
 
     </script>
 </body>
