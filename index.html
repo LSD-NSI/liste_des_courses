@@ -79,6 +79,13 @@
             border-radius: 5px;
             position: relative;
         }
+        .item:active {
+            cursor: grabbing;
+        }
+        .dragging {
+            opacity: 0.5;
+            transform: scale(1.05);
+        }
 
         .bought {
             text-decoration: line-through;
@@ -270,71 +277,94 @@
             loadList();
         }
 
+        let startY = 0;
+        let currentIndex = -1;
+        let itemsArray = [];
+
         function loadList() {
             let list = document.getElementById("list");
             list.innerHTML = "";
-            let items = JSON.parse(localStorage.getItem("shoppingList")) || [];
-            items.forEach((item, index) => {
+            itemsArray = JSON.parse(localStorage.getItem("shoppingList")) || [];
+
+            itemsArray.forEach((item, index) => {
                 let li = document.createElement("li");
                 li.className = "item";
+                li.dataset.index = index;
+
                 if (item.bought) li.classList.add("bought");
                 if (item.notFound) li.classList.add("not-found");
 
                 li.innerHTML = `
-            <div class="move-buttons">
-                <button onclick="moveUp(${index})">⬆️</button>
-                <button onclick="moveDown(${index})">⬇️</button>
-            </div>
-            <input type="checkbox" class="small-checkbox" onclick="toggleBought(${index})" ${item.bought ? "checked" : ""}>
-            <div class="item-content">
-                <span onclick="toggleBought(${index})">${item.name} ${item.note ? " - " + item.note : ""}</span>
-            </div>
-            <button class="not-found-button" onclick="toggleNotFound(${index})">🚫</button>
-            <button class="delete-item" onclick="deleteItem(${index})">❌</button>
-        `;
+                    <input type="checkbox" class="small-checkbox" onclick="toggleBought(${index})" ${item.bought ? "checked" : ""}>
+                    <div class="item-content">
+                        <span onclick="toggleBought(${index})">${item.name} ${item.note ? " - " + item.note : ""}</span>
+                    </div>
+                    <button class="not-found-button" onclick="toggleNotFound(${index})">🚫</button>
+                    <button class="delete-item" onclick="deleteItem(${index})">❌</button>
+                `;
+
+                // Ajout des événements tactiles pour le déplacement
+                li.addEventListener("touchstart", touchStart);
+                li.addEventListener("touchmove", touchMove);
+                li.addEventListener("touchend", touchEnd);
+
                 list.appendChild(li);
             });
         }
 
+        function touchStart(event) {
+            let item = event.target.closest(".item");
+            if (!item) return;
+
+            startY = event.touches[0].clientY;
+            currentIndex = Number(item.dataset.index);
+            item.classList.add("dragging");
+        }
+
+        function touchMove(event) {
+            if (currentIndex === -1) return;
+            let list = document.getElementById("list");
+            let touchY = event.touches[0].clientY;
+            let diffY = touchY - startY;
+
+            let hoveredItem = document.elementFromPoint(event.touches[0].clientX, touchY);
+            let targetItem = hoveredItem?.closest(".item");
+
+            if (targetItem && targetItem !== list.children[currentIndex]) {
+                let targetIndex = Number(targetItem.dataset.index);
+
+                if (targetIndex !== currentIndex) {
+                    let movedItem = itemsArray.splice(currentIndex, 1)[0];
+                    itemsArray.splice(targetIndex, 0, movedItem);
+                    currentIndex = targetIndex;
+                    localStorage.setItem("shoppingList", JSON.stringify(itemsArray));
+                    loadList();
+                }
+            }
+        }
+
+        function touchEnd(event) {
+            let item = document.querySelector(".dragging");
+            if (item) item.classList.remove("dragging");
+            currentIndex = -1;
+        }
+
         function toggleBought(index) {
-            let items = JSON.parse(localStorage.getItem("shoppingList"));
-            items[index].bought = !items[index].bought;
-            localStorage.setItem("shoppingList", JSON.stringify(items));
+            itemsArray[index].bought = !itemsArray[index].bought;
+            localStorage.setItem("shoppingList", JSON.stringify(itemsArray));
             loadList();
         }
 
         function toggleNotFound(index) {
-            let items = JSON.parse(localStorage.getItem("shoppingList"));
-            items[index].notFound = !items[index].notFound;
-            localStorage.setItem("shoppingList", JSON.stringify(items));
+            itemsArray[index].notFound = !itemsArray[index].notFound;
+            localStorage.setItem("shoppingList", JSON.stringify(itemsArray));
             loadList();
         }
 
-        function moveUp(index) {
-            let items = JSON.parse(localStorage.getItem("shoppingList"));
-            if (index > 0) {
-                [items[index], items[index - 1]] = [items[index - 1], items[index]];
-                localStorage.setItem("shoppingList", JSON.stringify(items));
-                loadList();
-            }
-        }
-
-        function moveDown(index) {
-            let items = JSON.parse(localStorage.getItem("shoppingList"));
-            if (index < items.length - 1) {
-                [items[index], items[index + 1]] = [items[index + 1], items[index]];
-                localStorage.setItem("shoppingList", JSON.stringify(items));
-                loadList();
-            }
-        }
-
         function deleteItem(index) {
-            if (confirm("Êtes-vous sûr de vouloir supprimer cet élément ?")) {
-                let items = JSON.parse(localStorage.getItem("shoppingList"));
-                items.splice(index, 1);
-                localStorage.setItem("shoppingList", JSON.stringify(items));
-                loadList();
-            }
+            itemsArray.splice(index, 1);
+            localStorage.setItem("shoppingList", JSON.stringify(itemsArray));
+            loadList();
         }
 
         function clearList() {
