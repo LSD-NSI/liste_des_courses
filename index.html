@@ -31,6 +31,7 @@
             margin: 5px 0;
             border: none;
             border-radius: 5px;
+            box-sizing: border-box;
         }
 
         input {
@@ -56,6 +57,10 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
         }
 
         ul {
@@ -65,12 +70,6 @@
         }
 
         .item {
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-
-        .item {
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -78,7 +77,7 @@
             padding: 10px;
             margin-top: 5px;
             border-radius: 5px;
-            transition: 0.3s;
+            position: relative;
         }
 
         .bought {
@@ -94,6 +93,7 @@
         .small-checkbox {
             width: 20px;
             height: 20px;
+            margin-right: 10px;
         }
 
         .delete-all {
@@ -109,6 +109,40 @@
             border-radius: 5px;
             cursor: pointer;
         }
+
+        .move-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            align-items: center;
+            margin-right: 10px;
+        }
+
+        .move-buttons button {
+            width: 30px;
+            height: 30px;
+            font-size: 16px;
+            cursor: pointer;
+            background: #0e11c5;
+            color: white;
+            border: none;
+            border-radius: 10%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s;
+        }
+
+        .move-buttons button:active {
+            background: rgb(68, 134, 255);
+        }
+
+        .item-content {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
     </style>
 </head>
 
@@ -121,6 +155,7 @@
         <ul id="list"></ul>
     </div>
     <button class="delete-all" onclick="clearList()">Supprimer la liste</button>
+
     <script>
         document.addEventListener("DOMContentLoaded", loadList);
 
@@ -150,8 +185,14 @@
                 if (item.notFound) li.classList.add("not-found");
 
                 li.innerHTML = `
+                    <div class="move-buttons">
+                        <button onclick="moveUp(${index})">⬆️</button>
+                        <button onclick="moveDown(${index})">⬇️</button>
+                    </div>
                     <input type="checkbox" class="small-checkbox" onclick="toggleBought(${index})" ${item.bought ? "checked" : ""}>
-                    <span onclick="toggleBought(${index})">${item.name} ${item.note ? " - " + item.note : ""}</span>
+                    <div class="item-content">
+                        <span onclick="toggleBought(${index})">${item.name} ${item.note ? " - " + item.note : ""}</span>
+                    </div>
                     <button class="not-found-button" onclick="toggleNotFound(${index})">🚫</button>
                 `;
                 list.appendChild(li);
@@ -172,7 +213,39 @@
             loadList();
         }
 
+        function moveUp(index) {
+            let items = JSON.parse(localStorage.getItem("shoppingList"));
+            if (index > 0) {
+                [items[index], items[index - 1]] = [items[index - 1], items[index]];
+                localStorage.setItem("shoppingList", JSON.stringify(items));
+                loadList();
+            }
+        }
+
+        function moveDown(index) {
+            let items = JSON.parse(localStorage.getItem("shoppingList"));
+            if (index < items.length - 1) {
+                [items[index], items[index + 1]] = [items[index + 1], items[index]];
+                localStorage.setItem("shoppingList", JSON.stringify(items));
+                loadList();
+            }
+        }
+
         function clearList() {
+            let items = JSON.parse(localStorage.getItem("shoppingList")) || [];
+            let notFoundItems = items.filter(item => item.notFound);
+
+            if (notFoundItems.length > 0) {
+                let message = `Les éléments suivants sont marqués comme "Non trouvés" :\n`;
+                notFoundItems.forEach(item => {
+                    message += `- ${item.name} ${item.note ? "(" + item.note + ")" : ""}\n`;
+                });
+
+                if (!confirm(message + "\nVoulez-vous vraiment supprimer la liste ?")) {
+                    return; // Si l'utilisateur annule, on ne supprime pas la liste
+                }
+            }
+
             localStorage.removeItem("shoppingList");
             loadList();
         }
