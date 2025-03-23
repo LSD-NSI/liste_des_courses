@@ -22,6 +22,7 @@
             padding: 20px;
             border-radius: 2px;
             box-shadow: 0 0 10px rgba(0, 0, 255, 0.5);
+            position: relative;
         }
 
         input,
@@ -96,20 +97,6 @@
             margin-right: 10px;
         }
 
-        .delete-all {
-            position: fixed;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 200px;
-            padding: 10px;
-            background: red;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
         .move-buttons {
             display: flex;
             flex-direction: column;
@@ -143,21 +130,114 @@
             justify-content: center;
             align-items: center;
         }
+
+        .delete-all {
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            padding: 10px;
+            background: red;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .action-buttons button {
+            background: rgb(9, 0, 128);
+            color: white;
+            cursor: pointer;
+            padding: 10px;
+            margin: 5px 0;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .title-container {
+            position: relative;
+        }
+
+        .title-container h2 {
+            display: inline-block;
+            margin: 0;
+            padding-left: 35px;
+        }
+
+        .options-button {
+            background: #0e11c5;
+            color: white;
+            font-size: 14px;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            text-align: center;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .options-button:active {
+            background: rgb(68, 134, 255);
+        }
+
+        .options-button:hover {
+            background: #00007f;
+        }
+
+        .options-menu {
+            display: none;
+            position: absolute;
+            top: 50px;
+            right: 20px;
+            background-color: #1e1e1e;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 255, 0.5);
+        }
     </style>
 </head>
 
 <body>
+    <button class="options-button" onclick="toggleOptionsMenu()">⚙️</button>
+
     <div class="container">
-        <h2>Liste de Courses</h2>
+        <div class="title-container">
+            <h2>Liste de Courses</h2>
+        </div>
         <input type="text" id="item" placeholder="Nom de l'article">
         <input type="text" id="note" placeholder="Remarque (optionnel)">
         <button class="add-button" onclick="addItem()">Ajouter</button>
         <ul id="list"></ul>
+
+        <div class="options-menu" id="optionsMenu">
+            <div class="action-buttons">
+                <button onclick="downloadList()">Télécharger en .txt</button>
+                <button onclick="printList()">Imprimer</button>
+                <input type="file" id="fileInput" style="display: none;" onchange="loadFile(event)">
+                <button onclick="document.getElementById('fileInput').click()">Charger un fichier .txt</button>
+            </div>
+        </div>
     </div>
     <button class="delete-all" onclick="clearList()">Supprimer la liste</button>
 
     <script>
         document.addEventListener("DOMContentLoaded", loadList);
+
+        function toggleOptionsMenu() {
+            const menu = document.getElementById('optionsMenu');
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
 
         function addItem() {
             let itemName = document.getElementById("item").value;
@@ -232,22 +312,61 @@
         }
 
         function clearList() {
-            let items = JSON.parse(localStorage.getItem("shoppingList")) || [];
-            let notFoundItems = items.filter(item => item.notFound);
-
-            if (notFoundItems.length > 0) {
-                let message = `Les éléments suivants sont marqués comme "Non trouvés" :\n`;
-                notFoundItems.forEach(item => {
-                    message += `- ${item.name} ${item.note ? "(" + item.note + ")" : ""}\n`;
-                });
-
-                if (!confirm(message + "\nVoulez-vous vraiment supprimer la liste ?")) {
-                    return; // Si l'utilisateur annule, on ne supprime pas la liste
-                }
-            }
-
             localStorage.removeItem("shoppingList");
             loadList();
+        }
+
+        function downloadList() {
+            let items = JSON.parse(localStorage.getItem("shoppingList")) || [];
+            let text = items.map(item => `${item.name} ${item.note ? "- " + item.note : ""}`).join("\n");
+            let blob = new Blob([text], { type: 'text/plain' });
+            let url = URL.createObjectURL(blob);
+            let a = document.createElement("a");
+            a.href = url;
+            a.download = "shopping-list.txt";
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function printList() {
+            let items = JSON.parse(localStorage.getItem("shoppingList")) || [];
+            let printWindow = window.open('', '', 'width=800,height=600');
+
+            printWindow.document.write('<html><head><title>Liste de Courses</title>');
+            printWindow.document.write('<style>');
+            printWindow.document.write('body { font-family: Arial, sans-serif; font-size: 18px; color: #333; line-height: 1.6; padding: 20px; margin: 0; }');
+            printWindow.document.write('ul { padding-left: 20px; }');
+            printWindow.document.write('li { margin-bottom: 10px; }');
+            printWindow.document.write('h1 { font-size: 24px; text-align: center; margin-bottom: 30px; }');
+            printWindow.document.write('</style>');
+            printWindow.document.write('</head><body>');
+
+            printWindow.document.write('<h1>Liste de Courses</h1>');
+
+            printWindow.document.write('<ul>');
+            items.forEach(item => {
+                printWindow.document.write(`<li><strong>${item.name}</strong> ${item.note ? "- " + item.note : ""}</li>`);
+            });
+            printWindow.document.write('</ul>');
+
+            printWindow.document.write('</body></html>');
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        function loadFile(event) {
+            let file = event.target.files[0];
+            let reader = new FileReader();
+            reader.onload = function (e) {
+                let text = e.target.result;
+                let items = text.split('\n').map(line => {
+                    let parts = line.split(' - ');
+                    return { name: parts[0], note: parts[1] || '', bought: false, notFound: false };
+                });
+                localStorage.setItem("shoppingList", JSON.stringify(items));
+                loadList();
+            };
+            reader.readAsText(file);
         }
     </script>
 </body>
