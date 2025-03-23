@@ -225,6 +225,7 @@
             <div class="action-buttons">
                 <button onclick="downloadList()">Télécharger en .txt</button>
                 <button onclick="printList()">Imprimer</button>
+                <button onclick="shareList()">Partager</button>
                 <input type="file" id="fileInput" style="display: none;" onchange="loadFile(event)">
                 <button onclick="document.getElementById('fileInput').click()">Charger un fichier .txt</button>
             </div>
@@ -368,6 +369,27 @@
                 loadList();
             };
             reader.readAsText(file);
+        }
+
+        function shareList() {
+            let items = JSON.parse(localStorage.getItem("shoppingList")) || [];
+            let text = items.map(item => `${item.name} ${item.note ? "- " + item.note : ""}`).join("\n");
+            let blob = new Blob([text], { type: 'text/plain' });
+            let url = URL.createObjectURL(blob);
+
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Liste de Courses',
+                    text: 'Voici ma liste de courses',
+                    url: url
+                }).then(() => {
+                    console.log('Liste partagée avec succès');
+                }).catch((error) => {
+                    console.error('Erreur de partage', error);
+                });
+            } else {
+                alert('Le partage n\'est pas supporté sur ce navigateur.');
+            }
         }
     </script>
 </body>
