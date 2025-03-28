@@ -312,15 +312,35 @@
             });
         }
 
-        function touchStart(event) {
-            event.preventDefault();
-            draggedItem = event.target.closest(".item");
-            if (!draggedItem) return;
+function touchStart(event) {
+    event.preventDefault();
+    draggedItem = event.target.closest(".item");
+    if (!draggedItem) return;
 
-            startY = event.touches[0].clientY;
-            currentIndex = Number(draggedItem.dataset.index);
-            draggedItem.classList.add("dragging");
-        }
+    const rect = draggedItem.getBoundingClientRect();
+    const touchX = event.touches[0].clientX;
+    const touchY = event.touches[0].clientY;
+
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    // Tolérance de 10% de la taille de l'élément
+    const toleranceX = rect.width * 0.1;
+    const toleranceY = rect.height * 0.1;
+
+    if (
+        Math.abs(touchX - centerX) > toleranceX ||
+        Math.abs(touchY - centerY) > toleranceY
+    ) {
+        draggedItem = null; // Bloquer le drag si pas au centre
+        return;
+    }
+
+    startY = event.touches[0].clientY;
+    currentIndex = Number(draggedItem.dataset.index);
+    draggedItem.classList.add("dragging");
+}
+
 
 
         function touchMove(event) {
