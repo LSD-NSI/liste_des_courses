@@ -84,6 +84,7 @@
             border-radius: 5px;
             position: relative;
             transition: transform 0.2s ease-in-out;
+            z-index: 1;
         }
 
         .item:active {
@@ -91,9 +92,7 @@
         }
 
         .dragging {
-            opacity: 0.6;
             transform: scale(1.05);
-            z-index: -1;
         }
 
 
@@ -112,21 +111,6 @@
             width: 25px;
             height: 25px;
             margin-right: 10px;
-        }
-
-        .move-buttons button {
-            width: 25px;
-            height: 25px;
-            margin-left: 5px;
-            font-size: 14px;
-            cursor: pointer;
-            background: #0e11c5;
-            color: white;
-            border-radius: 10%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.3s;
         }
 
         .item-content {
