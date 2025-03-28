@@ -304,42 +304,49 @@
         }
 
         function touchStart(event) {
-            event.preventDefault();
-            draggedItem = event.target.closest(".item");
-            if (!draggedItem) return;
+    event.preventDefault();
+    draggedItem = event.target.closest(".item");
+    if (!draggedItem) return;
 
-            startY = event.touches[0].clientY;
-            currentIndex = Number(draggedItem.dataset.index);
-            draggedItem.classList.add("dragging");
+    const rect = draggedItem.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    // Vérifie si le clic est dans une zone proche du centre
+    if (Math.abs(event.touches[0].clientX - centerX) <= 50 && Math.abs(event.touches[0].clientY - centerY) <= 50) {
+        startY = event.touches[0].clientY;
+        currentIndex = Number(draggedItem.dataset.index);
+        draggedItem.classList.add("dragging");
+    }
+}
+
+
+function touchMove(event) {
+    event.preventDefault();
+    if (!draggedItem) return;
+
+    let touchY = event.touches[0].clientY;
+    let hoveredItem = document.elementFromPoint(event.touches[0].clientX, touchY);
+    let targetItem = hoveredItem?.closest(".item");
+
+    if (targetItem && targetItem !== draggedItem) {
+        let targetIndex = Number(targetItem.dataset.index);
+
+        if (targetIndex !== currentIndex) {
+            let movedItem = itemsArray.splice(currentIndex, 1)[0];
+            itemsArray.splice(targetIndex, 0, movedItem);
+            currentIndex = targetIndex;
+            localStorage.setItem("shoppingList", JSON.stringify(itemsArray));
+            loadList();
         }
+    }
+}
 
-
-        function touchMove(event) {
-            event.preventDefault();
-            if (!draggedItem) return;
-
-            let touchY = event.touches[0].clientY;
-            let hoveredItem = document.elementFromPoint(event.touches[0].clientX, touchY);
-            let targetItem = hoveredItem?.closest(".item");
-
-            if (targetItem && targetItem !== draggedItem) {
-                let targetIndex = Number(targetItem.dataset.index);
-
-                if (targetIndex !== currentIndex) {
-                    let movedItem = itemsArray.splice(currentIndex, 1)[0];
-                    itemsArray.splice(targetIndex, 0, movedItem);
-                    currentIndex = targetIndex;
-                    localStorage.setItem("shoppingList", JSON.stringify(itemsArray));
-                    loadList();
-                }
-            }
-        }
-
-        function touchEnd(event) {
-            if (draggedItem) draggedItem.classList.remove("dragging");
-            draggedItem = null;
-            currentIndex = -1;
-        }
+function touchEnd(event) {
+    if (draggedItem) draggedItem.classList.remove("dragging");
+    draggedItem = null;
+    currentIndex = -1;
+}
 
 
         function toggleBought(index) {
