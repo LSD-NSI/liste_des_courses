@@ -200,6 +200,7 @@
 
         .options-menu {
             display: none;
+            z-index: 55555;
             position: absolute;
             top: 50px;
             right: 20px;
@@ -244,12 +245,12 @@
                 <button onclick="downloadList()">Télécharger en .txt</button>
                 <button onclick="printList()">Imprimer</button>
                 <button onclick="shareList()">Partager</button>
+                <button onclick="clearList()">Supprimer la liste</button>
                 <input type="file" id="fileInput" style="display: none;" onchange="loadFile(event)">
                 <button onclick="document.getElementById('fileInput').click()">Charger un fichier .txt</button>
             </div>
         </div>
     </div>
-    <button class="delete-all" onclick="clearList()">Supprimer la liste</button>
 
     <script>
         document.addEventListener("DOMContentLoaded", loadList);
