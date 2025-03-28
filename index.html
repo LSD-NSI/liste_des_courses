@@ -111,6 +111,8 @@
             width: 25px;
             height: 25px;
             margin-right: 10px;
+            z-index: 10000;
+            position: relative;
         }
 
         .item-content {
@@ -304,32 +306,34 @@
         }
 
         document.addEventListener('touchstart', function (event) {
-            if (event.target.closest('.delete-item') || event.target.closest('.not-found-button')) {
+            if (event.target.closest('.delete-item') || event.target.closest('.not-found-button') || event.target.closest('.small-checkbox')) {
                 event.stopPropagation();
             }
         }, { passive: true });
 
-
+        target.closest('.delete-item') || target.closest('.not-found-button')
         function touchStart(event) {
-            const target = event.target;
-            if (target.closest('.delete-item') || target.closest('.not-found-button')) {
-                return; // Ignore le drag si c'est un bouton
-            }
+    const target = event.target;
 
-            event.preventDefault();
-            draggedItem = event.target.closest(".item");
-            if (!draggedItem) return;
+    if (target.closest('.small-checkbox') || target.closest('.delete-item') || target.closest('.not-found-button')) {
+        return;  
+    }
 
-            const rect = draggedItem.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
+    event.preventDefault();  
+    draggedItem = event.target.closest(".item");
+    if (!draggedItem) return;
 
-            if (Math.abs(event.touches[0].clientX - centerX) <= 50 && Math.abs(event.touches[0].clientY - centerY) <= 50) {
-                startY = event.touches[0].clientY;
-                currentIndex = Number(draggedItem.dataset.index);
-                draggedItem.classList.add("dragging");
-            }
-        }
+    const rect = draggedItem.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    if (Math.abs(event.touches[0].clientX - centerX) <= 50 && Math.abs(event.touches[0].clientY - centerY) <= 50) {
+        startY = event.touches[0].clientY;
+        currentIndex = Number(draggedItem.dataset.index);
+        draggedItem.classList.add("dragging");
+    }
+}
+
 
 
 
