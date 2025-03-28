@@ -84,7 +84,7 @@
             border-radius: 5px;
             position: relative;
             transition: transform 0.2s ease-in-out;
-            z-index: 1;
+            z-index: 0;
         }
 
         .item:active {
@@ -303,50 +303,62 @@
             });
         }
 
+        document.addEventListener('touchstart', function (event) {
+            if (event.target.closest('.delete-item') || event.target.closest('.not-found-button')) {
+                event.stopPropagation();
+            }
+        }, { passive: true });
+
+
         function touchStart(event) {
-    event.preventDefault();
-    draggedItem = event.target.closest(".item");
-    if (!draggedItem) return;
+            const target = event.target;
+            if (target.closest('.delete-item') || target.closest('.not-found-button')) {
+                return; // Ignore le drag si c'est un bouton
+            }
 
-    const rect = draggedItem.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
+            event.preventDefault();
+            draggedItem = event.target.closest(".item");
+            if (!draggedItem) return;
 
-    // Vérifie si le clic est dans une zone proche du centre
-    if (Math.abs(event.touches[0].clientX - centerX) <= 50 && Math.abs(event.touches[0].clientY - centerY) <= 50) {
-        startY = event.touches[0].clientY;
-        currentIndex = Number(draggedItem.dataset.index);
-        draggedItem.classList.add("dragging");
-    }
-}
+            const rect = draggedItem.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
 
-
-function touchMove(event) {
-    event.preventDefault();
-    if (!draggedItem) return;
-
-    let touchY = event.touches[0].clientY;
-    let hoveredItem = document.elementFromPoint(event.touches[0].clientX, touchY);
-    let targetItem = hoveredItem?.closest(".item");
-
-    if (targetItem && targetItem !== draggedItem) {
-        let targetIndex = Number(targetItem.dataset.index);
-
-        if (targetIndex !== currentIndex) {
-            let movedItem = itemsArray.splice(currentIndex, 1)[0];
-            itemsArray.splice(targetIndex, 0, movedItem);
-            currentIndex = targetIndex;
-            localStorage.setItem("shoppingList", JSON.stringify(itemsArray));
-            loadList();
+            if (Math.abs(event.touches[0].clientX - centerX) <= 50 && Math.abs(event.touches[0].clientY - centerY) <= 50) {
+                startY = event.touches[0].clientY;
+                currentIndex = Number(draggedItem.dataset.index);
+                draggedItem.classList.add("dragging");
+            }
         }
-    }
-}
 
-function touchEnd(event) {
-    if (draggedItem) draggedItem.classList.remove("dragging");
-    draggedItem = null;
-    currentIndex = -1;
-}
+
+
+        function touchMove(event) {
+            event.preventDefault();
+            if (!draggedItem) return;
+
+            let touchY = event.touches[0].clientY;
+            let hoveredItem = document.elementFromPoint(event.touches[0].clientX, touchY);
+            let targetItem = hoveredItem?.closest(".item");
+
+            if (targetItem && targetItem !== draggedItem) {
+                let targetIndex = Number(targetItem.dataset.index);
+
+                if (targetIndex !== currentIndex) {
+                    let movedItem = itemsArray.splice(currentIndex, 1)[0];
+                    itemsArray.splice(targetIndex, 0, movedItem);
+                    currentIndex = targetIndex;
+                    localStorage.setItem("shoppingList", JSON.stringify(itemsArray));
+                    loadList();
+                }
+            }
+        }
+
+        function touchEnd(event) {
+            if (draggedItem) draggedItem.classList.remove("dragging");
+            draggedItem = null;
+            currentIndex = -1;
+        }
 
 
         function toggleBought(index) {
