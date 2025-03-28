@@ -49,7 +49,7 @@
 
         .not-found-button {
             background: darkorange;
-			z-index: 55;
+            z-index: 55;
             color: white;
             cursor: pointer;
             border-radius: 10%;
@@ -70,28 +70,28 @@
             list-style: none;
         }
 
-        .item {          
-			display: flex;
-			user-select: none; 
-			align-items: center;
-			justify-content: space-between;
-			background: #333;
-			padding: 3px;
-			margin-top: 3px;
-			border-radius: 5px;
-			position: relative;
-			transition: transform 0.2s ease-in-out;     
-		}
+        .item {
+            display: flex;
+            user-select: none;
+            align-items: center;
+            justify-content: space-between;
+            background: #333;
+            padding: 3px;
+            margin-top: 3px;
+            border-radius: 5px;
+            position: relative;
+            transition: transform 0.2s ease-in-out;
+        }
 
-		.item:active {
-			cursor: grabbing;
-		}
+        .item:active {
+            cursor: grabbing;
+        }
 
-		.dragging {
-			opacity: 0.6; 
-			transform: scale(1.05); 
-			z-index: -1; 
-		}
+        .dragging {
+            opacity: 0.6;
+            transform: scale(1.05);
+            z-index: -1;
+        }
 
 
 
@@ -274,26 +274,28 @@
             loadList();
         }
 
+        document.addEventListener("DOMContentLoaded", loadList);
+
         let startY = 0;
         let currentIndex = -1;
         let itemsArray = [];
+        let draggedItem = null;
 
+        function loadList() {
+            let list = document.getElementById("list");
+            list.innerHTML = "";
+            itemsArray = JSON.parse(localStorage.getItem("shoppingList")) || [];
 
+            itemsArray.forEach((item, index) => {
+                let li = document.createElement("li");
+                li.className = "item";
+                li.dataset.index = index;
+                li.innerHTML = `<span>${item.name}</span>`;
 
-function loadList() {
-    let list = document.getElementById("list");
-    list.innerHTML = "";
-    itemsArray = JSON.parse(localStorage.getItem("shoppingList")) || [];
+                if (item.bought) li.classList.add("bought");
+                if (item.notFound) li.classList.add("not-found");
 
-    itemsArray.forEach((item, index) => {
-        let li = document.createElement("li");
-        li.className = "item";
-        li.dataset.index = index;
-
-        if (item.bought) li.classList.add("bought");
-        if (item.notFound) li.classList.add("not-found");
-
-        li.innerHTML = `
+                li.innerHTML = `
             <input type="checkbox" class="small-checkbox" onclick="toggleBought(${index})" ${item.bought ? "checked" : ""}>
             <div class="item-content">
                 <span onclick="toggleBought(${index})">${item.name} ${item.note ? " - " + item.note : ""}</span>
@@ -301,54 +303,51 @@ function loadList() {
             <button class="not-found-button" onclick="toggleNotFound(${index})">🚫</button>
             <button class="delete-item" onclick="deleteItem(${index})">❌</button>
         `;
+                li.addEventListener("touchstart", touchStart, { passive: false });
+                li.addEventListener("touchmove", touchMove, { passive: false });
+                li.addEventListener("touchend", touchEnd);
 
-        // Ajout des événements tactiles pour le déplacement
-        li.addEventListener("touchstart", touchStart);
-        li.addEventListener("touchmove", touchMove);
-        li.addEventListener("touchend", touchEnd);
-
-        list.appendChild(li);
-    });
-}
-
-function touchStart(event) {
-    let item = event.target.closest(".item");
-    if (!item) return;
-
-    startY = event.touches[0].clientY;
-    currentIndex = Number(item.dataset.index);
-    item.classList.add("dragging"); // Ajout de la classe de déplacement
-}
-
-function touchMove(event) {
-    if (currentIndex === -1) return;
-
-    let list = document.getElementById("list");
-    let touchY = event.touches[0].clientY;
-    let diffY = touchY - startY;
-
-    let hoveredItem = document.elementFromPoint(event.touches[0].clientX, touchY);
-    let targetItem = hoveredItem?.closest(".item");
-
-    // Déplacement de l'élément
-    if (targetItem && targetItem !== list.children[currentIndex]) {
-        let targetIndex = Number(targetItem.dataset.index);
-
-        if (targetIndex !== currentIndex) {
-            let movedItem = itemsArray.splice(currentIndex, 1)[0];
-            itemsArray.splice(targetIndex, 0, movedItem);
-            currentIndex = targetIndex;
-            localStorage.setItem("shoppingList", JSON.stringify(itemsArray));
-            loadList();
+                list.appendChild(li);
+            });
         }
-    }
-}
 
-function touchEnd(event) {
-    let item = document.querySelector(".dragging");
-    if (item) item.classList.remove("dragging");
-    currentIndex = -1;
-}
+        function touchStart(event) {
+            event.preventDefault();
+            draggedItem = event.target.closest(".item");
+            if (!draggedItem) return;
+
+            startY = event.touches[0].clientY;
+            currentIndex = Number(draggedItem.dataset.index);
+            draggedItem.classList.add("dragging");
+        }
+
+
+        function touchMove(event) {
+            event.preventDefault();
+            if (!draggedItem) return;
+
+            let touchY = event.touches[0].clientY;
+            let hoveredItem = document.elementFromPoint(event.touches[0].clientX, touchY);
+            let targetItem = hoveredItem?.closest(".item");
+
+            if (targetItem && targetItem !== draggedItem) {
+                let targetIndex = Number(targetItem.dataset.index);
+
+                if (targetIndex !== currentIndex) {
+                    let movedItem = itemsArray.splice(currentIndex, 1)[0];
+                    itemsArray.splice(targetIndex, 0, movedItem);
+                    currentIndex = targetIndex;
+                    localStorage.setItem("shoppingList", JSON.stringify(itemsArray));
+                    loadList();
+                }
+            }
+        }
+
+        function touchEnd(event) {
+            if (draggedItem) draggedItem.classList.remove("dragging");
+            draggedItem = null;
+            currentIndex = -1;
+        }
 
 
         function toggleBought(index) {
